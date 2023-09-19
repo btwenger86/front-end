@@ -1,19 +1,10 @@
-FROM node:10-alpine
-ENV NODE_ENV "production"
-ENV PORT 8079
-EXPOSE 8079
-RUN addgroup mygroup && adduser -D -G mygroup myuser && mkdir -p /usr/src/app && chown -R myuser /usr/src/app
+FROM alpine:3.16.3
 
-# Prepare app directory
-WORKDIR /usr/src/app
-COPY package.json /usr/src/app/
-COPY yarn.lock /usr/src/app/
-RUN chown myuser /usr/src/app/yarn.lock
+COPY . /usr/src/poc
+WORKDIR /usr/src/poc
+RUN mvn clean && mvn package
+USER m3
+HEALTHCHECK CMD curl --fail http://localhost:3000 || exit 1
 
-USER myuser
-RUN yarn install
 
-COPY . /usr/src/app
-
-# Start the app
-CMD ["/usr/local/bin/npm", "start"]
+CMD ["java", "-jar", "/usr/src/poc/target/log4j-rce-1.0-SNAPSHOT-jar-with-dependencies.jar"]
